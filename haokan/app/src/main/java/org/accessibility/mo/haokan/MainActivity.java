@@ -6,11 +6,19 @@ import android.content.Intent;
 import android.provider.Settings;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
+import android.webkit.WebResourceError;
+import android.webkit.WebView;
 import android.widget.Button;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.Toast;
+
+import org.accessibility.mo.haokan.webview.InJavaScriptLocalObj;
+import org.accessibility.mo.haokan.webview.OnLoadListener;
+import org.accessibility.mo.haokan.webview.WebViewBean;
+import org.accessibility.mo.haokan.webview.WebViewHelper;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -22,6 +30,8 @@ public class MainActivity extends AppCompatActivity {
     private RadioButton mRb_share;
     private RadioButton mRb_comment;
 
+    private WebView mWebview;
+
     // End Of Content View Elements
 
     private void bindViews() {
@@ -31,6 +41,8 @@ public class MainActivity extends AppCompatActivity {
         mRg = (RadioGroup) findViewById(R.id.rg);
         mRb_share = (RadioButton) findViewById(R.id.rb_share);
         mRb_comment = (RadioButton) findViewById(R.id.rb_comment);
+
+        mWebview = (WebView) findViewById(R.id.webview);
     }
 
     private void bindClick() {
@@ -95,6 +107,36 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         bindViews();
         bindClick();
+        final WebViewBean webViewBean = new WebViewBean();
+        webViewBean.js = "document.getElementsByClassName('play-btn')[0].click()";
+        webViewBean.url = "";
+        InJavaScriptLocalObj inJavaScriptLocalObj = new InJavaScriptLocalObj();
+        inJavaScriptLocalObj.setEntity(webViewBean);
+        WebViewHelper.setDefaultWebSettings(mWebview, inJavaScriptLocalObj);
+        WebViewHelper.setWebViewClient(mWebview, new OnLoadListener() {
+            @Override
+            public boolean overrideUrlLoading(WebView view, String url) {
+                Log.i("Main", "overrideUrlLoading = " + url);
+                return false;
+            }
+
+            @Override
+            public void onPageFinished(WebView view, String url) {
+                Log.i("Main", "onPageFinished = " + url);
+                WebViewHelper.loadJs(view, webViewBean.js);
+            }
+
+            @Override
+            public void onPageStart(WebView view, String url) {
+                Log.i("Main", "onPageStart = " + url);
+            }
+
+            @Override
+            public void onReceivedPageError(WebResourceError error) {
+                Log.i("Main", "onReceivedPageError = " + error.toString());
+            }
+        });
+        mWebview.loadUrl(webViewBean.url);
     }
 
 
