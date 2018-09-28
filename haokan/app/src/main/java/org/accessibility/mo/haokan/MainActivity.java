@@ -3,6 +3,7 @@ package org.accessibility.mo.haokan;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
@@ -176,6 +177,12 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
+    protected void onRestart() {
+        super.onRestart();
+        mWebview.reload();
+    }
+
+    @Override
     protected void onResume() {
         super.onResume();
         mWebview.onResume();
@@ -184,6 +191,11 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onPause() {
         super.onPause();
+        //让webview重新加载，用于停掉音视频的声音
+        mWebview.reload();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+            mWebview.onPause(); // 暂停网页中正在播放的视频
+        }
     }
 
     @Override
@@ -206,6 +218,17 @@ public class MainActivity extends AppCompatActivity {
             mWebview.pauseTimers();
             mWebview.destroy();
             mWebview = null; // Note that mWebView.destroy() and mWebView = null do the exact same thing
+        }
+    }
+
+    @Override
+    public void onBackPressed() {
+        //点击返回键返回url的上一个页面，而不是返回app中的上个页面
+        if (mWebview.canGoBack()) {
+            // goBack()表示返回WebView的上一页面
+            mWebview.goBack();
+        } else {
+            finish();
         }
     }
 
