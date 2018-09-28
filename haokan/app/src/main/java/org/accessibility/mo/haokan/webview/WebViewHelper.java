@@ -46,12 +46,12 @@ public class WebViewHelper {
         //禁用文字缩放
         webSettings.setTextZoom(100);
         //10M缓存，api 18后，系统自动管理。
-        webSettings.setAppCacheMaxSize(2 * 1024 * 1024);
+        webSettings.setAppCacheMaxSize(10 * 1024 * 1024);
         //关闭webview中缓存
         webSettings.setCacheMode(WebSettings.LOAD_NO_CACHE);
         //允许缓存，设置缓存位置
-        webSettings.setAppCacheEnabled(false);
-        //webSettings.setAppCachePath(context.getDir("appcache", 0).getPath());
+        webSettings.setAppCacheEnabled(true);
+        webSettings.setAppCachePath(webView.getContext().getDir("webCache", 0).getPath());
         //允许WebView使用File协议
         webSettings.setAllowFileAccess(true);
         //不保存密码
