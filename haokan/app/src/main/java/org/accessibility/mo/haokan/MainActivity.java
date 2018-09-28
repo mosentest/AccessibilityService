@@ -118,6 +118,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        this.getWindow().setFlags(0x800000,0x8000000);
         setContentView(R.layout.activity_main);
         bindViews();
         bindClick();
@@ -234,7 +235,7 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public void onAttachedToWindow() {
-//        this.getWindow().setType(WindowManager.LayoutParams.FIRST_SYSTEM_WINDOW+4);
+        //this.getWindow().setType(WindowManager.LayoutParams.TYPE_KEYGUARD_DIALOG);
         super.onAttachedToWindow();
     }
 
@@ -244,6 +245,8 @@ public class MainActivity extends AppCompatActivity {
             return true;
         } else if (keyCode == KeyEvent.KEYCODE_MENU) {//MENU键
             //监控/拦截菜单键
+            return true;
+        } else if (keyCode == event.KEYCODE_HOME) {
             return true;
         }
         return super.onKeyDown(keyCode, event);
