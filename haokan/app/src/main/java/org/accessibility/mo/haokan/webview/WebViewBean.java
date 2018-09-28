@@ -9,6 +9,8 @@ public class WebViewBean {
 
     public String url;
 
-    public String js;
+    public String[] js;
+
+    public long[] delay;
 
 }

@@ -3,11 +3,16 @@ package org.accessibility.mo.haokan;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.Message;
 import android.provider.Settings;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.View;
+import android.view.WindowManager;
 import android.webkit.WebResourceError;
 import android.webkit.WebView;
 import android.widget.Button;
@@ -31,6 +36,14 @@ public class MainActivity extends AppCompatActivity {
     private RadioButton mRb_comment;
 
     private WebView mWebview;
+
+
+    private Handler handler = new Handler(Looper.getMainLooper()) {
+        @Override
+        public void handleMessage(Message msg) {
+            super.handleMessage(msg);
+        }
+    };
 
     // End Of Content View Elements
 
@@ -108,8 +121,11 @@ public class MainActivity extends AppCompatActivity {
         bindViews();
         bindClick();
         final WebViewBean webViewBean = new WebViewBean();
-        webViewBean.js = "document.getElementsByClassName('play-btn')[0].click()";
+        webViewBean.js = new String[]{"document.getElementsByClassName('play-btn')[0].click()",
+                "document.getElementsByClassName('icon-btn')[0].click()",
+                "document.getElementsByClassName('iconfont icon-home')[0].click()"};
         webViewBean.url = "";
+        webViewBean.delay = new long[]{1000, 2000, 3000};
         InJavaScriptLocalObj inJavaScriptLocalObj = new InJavaScriptLocalObj();
         inJavaScriptLocalObj.setEntity(webViewBean);
         WebViewHelper.setDefaultWebSettings(mWebview, inJavaScriptLocalObj);
@@ -121,9 +137,23 @@ public class MainActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onPageFinished(WebView view, String url) {
+            public void onPageFinished(final WebView view, String url) {
                 Log.i("Main", "onPageFinished = " + url);
-                WebViewHelper.loadJs(view, webViewBean.js);
+                for (int i = 0; i < webViewBean.js.length; i++) {
+                    final int j = i;
+                    long delayTime1 = 0;
+                    //看服务器配置，如果服务器配置每个间隔时间，已经叠加上一个间隔的时间，这里就不需要这样处理
+                    if (j > 0) {
+                        delayTime1 = webViewBean.delay[j - 1];
+                    }
+                    long delayTime = webViewBean.delay[j];
+                    handler.postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            WebViewHelper.loadJs(view, webViewBean.js[j]);
+                        }
+                    }, delayTime1 + delayTime);
+                }
             }
 
             @Override
@@ -140,4 +170,59 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
+    @Override
+    protected void onStart() {
+        super.onStart();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        mWebview.onResume();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        mWebview.stopLoading();
+    }
+
+    /**
+     * https://blog.csdn.net/xuguobiao/article/details/51473016
+     */
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (mWebview != null) {
+            mWebview.stopLoading();
+            mWebview.clearHistory();
+            mWebview.clearCache(true);
+            mWebview.loadUrl("about:blank");
+            mWebview.pauseTimers();
+            mWebview.destroy();
+            mWebview = null; // Note that mWebView.destroy() and mWebView = null do the exact same thing
+        }
+    }
+
+    @Override
+    public void onAttachedToWindow() {
+//        this.getWindow().setType(WindowManager.LayoutParams.FIRST_SYSTEM_WINDOW+4);
+        super.onAttachedToWindow();
+    }
+
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if (keyCode == KeyEvent.KEYCODE_BACK) { //监控/拦截/屏蔽返回键
+            return true;
+        } else if (keyCode == KeyEvent.KEYCODE_MENU) {//MENU键
+            //监控/拦截菜单键
+            return true;
+        }
+        return super.onKeyDown(keyCode, event);
+    }
 }
